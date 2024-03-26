@@ -7,7 +7,7 @@ class SGTree {
          lazyTree.resize(4 * n + 1);
       }
 
-      void build_seg(ll ind, ll low, ll high, vi arr) {
+      void build_seg(ll ind, ll low, ll high, vi & arr) {
          if(low == high) {
             segTree[ind] = arr[low];
             return;
@@ -20,23 +20,29 @@ class SGTree {
          segTree[ind] = segTree[2 * ind + 1] + segTree[2 * ind + 2];
       }
 
-      ll query_seg(ll ind, ll low, ll high, ll l, ll r) {
-         if(lazyTree[ind] != 0) {
-            segTree[ind] += (high - low + 1) * lazyTree[ind]; 
-            // propogate the lazy update downwards
-            // for the remaining nodes to get updated 
-            if(low != high) {
-               lazyTree[2 * ind + 1] += lazyTree[ind]; 
-               lazyTree[2 * ind + 2] += lazyTree[ind]; 
-            }
-    
-            lazyTree[ind] = 0; 
+      void update_lazy(ll ind, ll low, ll high) {
+         if(low == high) {
+            segTree[ind] += lazyTree[ind];
+            lazyTree[ind] = 0;
          }
+         else {
+            segTree[ind] += (high - low + 1) * lazyTree[ind];
+            lazyTree[2 * ind + 1] += lazyTree[ind];
+            lazyTree[2 * ind + 2] += lazyTree[ind];
+            lazyTree[ind] = 0;
+         }
+      }
 
+      ll query_seg(ll ind, ll low, ll high, ll l, ll r) {
+         
+         update_lazy(ind, low, high);
 
          // No Overlap
-         if(r < low or high < l)
+         if(r < low or high < l or low > high)
             return 0;
+
+         if(low == high)
+            return segTree[ind];
 
          // complete Overlap
          if(low >= l and high <= r)
@@ -50,17 +56,8 @@ class SGTree {
       }
 
       void update_seg(ll ind, ll low, ll high, ll l, ll r, ll val) {
-         if(lazyTree[ind] != 0) {
-            segTree[ind] += (high - low + 1) * lazyTree[ind]; 
-            // propogate the lazy update downwards
-            // for the remaining nodes to get updated 
-            if(low != high) {
-               lazyTree[2 * ind + 1] += lazyTree[ind]; 
-               lazyTree[2 * ind + 2] += lazyTree[ind]; 
-            }
-    
-            lazyTree[ind] = 0; 
-         }
+         
+         update_lazy(ind, low, high);
 
          // No overlap
          if(high < l or r < low)
@@ -113,7 +110,7 @@ void solve(){
          cin >> l;
          l--;
          ll ans = st.query_seg(0, 0, n - 1, l, l);
-         cout << ans * 2 << endl;
+         cout << ans << endl;
       }
    }  
 
